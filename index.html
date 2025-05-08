@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" href="ai.ico" type="image/x-icon">
+    <title>Decoding emotions through sentiment analysis of social media conversations</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+</head>
+<style>
+
+.footer-container {
+  background: linear-gradient(to right, #1e3c72, #2a5298);
+  color: #ffffff;
+  padding: 40px 20px;
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border-top: 3px solid #ffffff10;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.footer-message {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+  animation: fadeIn 1.5s ease-in;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .footer-container {
+    padding: 30px 15px;
+  }
+
+  .footer-message {
+    font-size: 1rem;
+  }
+}
+
+</style>
+<body>
+
+    <div class="background-animation">
+        <div class="wave wave-1"></div>
+        <div class="wave wave-2"></div>
+        <div class="wave wave-3"></div>
+    </div>
+
+    <div class="container animate__animated animate__fadeIn">
+        <h1 class="title animate__animated animate__slideInDown">Decoding emotions through sentiment analysis of social media conversations</h1>
+        <p class="ta">.CSV files Format only</p>
+        
+        <div class="upload-section animate__animated animate__fadeInUp">
+            <input type="file" accept=".csv" class="file-input" id="csvFile">
+            <div class="column-select-container">
+                <div class="select-wrapper">
+                    <select id="columnSelect" class="enhanced-select">
+                        <option value="">Select Column for Analysis</option>
+                    </select>
+                    <div class="select-icon">📊</div>
+                </div>
+                <div class="column-info">
+                    <div class="info-box">
+                        <span class="info-label">Data Type:</span>
+                        <span id="columnType">-</span>
+                    </div>
+                    <div class="info-box">
+                        <span class="info-label">Unique Values:</span>
+                        <span id="uniqueValues">-</span>
+                    </div>
+                    <div class="info-box">
+                        <span class="info-label">Missing Data:</span>
+                        <span id="missingData">-</span>
+                    </div>
+                </div>
+                <div class="column-actions">
+                    <button onclick="analyzeColumn()" class="action-btn analyze-btn">
+                        <span class="btn-icon">🔍</span>
+                        Analyze
+                    </button>
+                    <button onclick="normalizeData()" class="action-btn normalize-btn">
+                        <span class="btn-icon">⚖️</span>
+                        Normalize
+                    </button>
+                    <button onclick="handleMissingData()" class="action-btn clean-btn">
+                        <span class="btn-icon">🧹</span>
+                        Clean Data
+                    </button>
+                </div>
+            </div>
+            <button onclick="updateCharts()" class="primary-btn">Update Charts</button>
+            <button onclick="startPrediction()" class="primary-btn prediction-btn">
+                <span class="btn-icon">📈</span>
+                Start Prediction
+            </button>
+        </div>
+
+        <div class="stats-container animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+            <div class="stat-box">
+                <h3>Total Records</h3>
+                <p id="totalRecords">0</p>
+            </div>
+            <div class="stat-box">
+                <h3>Selected Column</h3>
+                <p id="selectedColumn">None</p>
+            </div>
+            <div class="stat-box">
+                <h3>Data Range</h3>
+                <p id="dataRange">-</p>
+            </div>
+        </div>
+
+        <div class="prediction-section animate__animated animate__fadeInUp" style="display: none;">
+            <div class="prediction-controls">
+                <label for="futurePoints">Future Points:</label>
+                <input type="number" id="futurePoints" value="5" min="1" max="50">
+                <label for="confidenceLevel">Confidence Level (%):</label>
+                <input type="number" id="confidenceLevel" value="95" min="1" max="99">
+                <button onclick="updatePrediction()" class="primary-btn">Update Prediction</button>
+            </div>
+            <div class="prediction-stats">
+                <div class="stat-box">
+                    <h3>Trend Direction</h3>
+                    <p id="trendDirection">-</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Confidence Score</h3>
+                    <p id="confidenceScore">-</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Next Predicted Value</h3>
+                    <p id="nextPrediction">-</p>
+                </div>
+            </div>
+            <div class="chart-box prediction-chart-container">
+                <canvas id="predictionChart"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-container animate__animated animate__fadeInUp" style="animation-delay: 0.4s">
+            <div class="chart-box">
+                <h3>Distribution</h3>
+                <canvas id="distributionChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Time Series</h3>
+                <canvas id="timeSeriesChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Correlation</h3>
+                <canvas id="correlationChart"></canvas>
+            </div>
+        </div>
+
+        
+    </div>
+    <div class="mobile-fab" onclick="scrollToTop()" aria-label="Scroll to top">
+        ↑
+    </div>
+    <div class="pull-indicator">
+    </div>
+    <script src="scripts.js"></script>
+    <button class="back-button fixed top-4 left-4 rounded-full bg-blue-500 text-white p-2 shadow-md hover:bg-blue-400 transition-all duration-300" onclick="history.back()">
+        <i class="fas fa-arrow-left"></i>🔙
+    </button>
+    <div class="footer-container">
+        <p class="footer-message">
+          Hiih uywowrhrhrhwwrhjkhrhjwhrwhk whrhwhwrk<br>
+          nnegkgkegejgegejgkegjehgkehf
+        </p>
+      </div>
+      
+   
+</body>
+</html>
